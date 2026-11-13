@@ -13,17 +13,23 @@ let vwapSeries = null;
 let currentMode = "PAPER";
 let socket = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-  initNavigation();
-  initChart();
-  initControls();
-  initForms();
-  initWebSocket();
-  fetchInitialData();
+function init() {
+  try { initNavigation(); } catch (e) { console.error("Navigation init error:", e); }
+  try { initChart(); } catch (e) { console.error("Chart init error:", e); }
+  try { initControls(); } catch (e) { console.error("Controls init error:", e); }
+  try { initForms(); } catch (e) { console.error("Forms init error:", e); }
+  try { initWebSocket(); } catch (e) { console.error("WebSocket init error:", e); }
+  try { fetchInitialData(); } catch (e) { console.error("Initial data error:", e); }
 
   // Periodic polling every 3 seconds for continuous updates
   setInterval(refreshDashboardData, 3000);
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
 
 // 1. Navigation Switching
 function initNavigation() {
@@ -59,10 +65,10 @@ function initChart() {
   if (!container || !window.LightweightCharts) return;
 
   chart = LightweightCharts.createChart(container, {
-    width: container.clientWidth,
+    width: container.clientWidth || 800,
     height: 520,
     layout: {
-      backgroundColor: "#121824",
+      background: { color: "#121824" },
       textColor: "#9ca3af",
     },
     grid: {
@@ -463,13 +469,13 @@ function renderPositionsTable(tableId, positions) {
     <tr>
       <td>${p.position_id}</td>
       <td><strong>${p.symbol}</strong></td>
-      <td style="color: ${p.side === "LONG" ? "var(--accent-green)" : "var(--accent-red)}; font-weight: bold;">${p.side}</td>
+      <td style="color: ${p.side === "LONG" ? "var(--accent-green)" : "var(--accent-red)"}; font-weight: bold;">${p.side}</td>
       <td>${p.quantity.toFixed(4)}</td>
       <td>$${p.entry_price.toFixed(2)}</td>
       <td>$${p.current_price.toFixed(2)}</td>
       <td style="color: var(--accent-red);">$${p.stop_loss ? p.stop_loss.toFixed(2) : "N/A"}</td>
       <td style="color: var(--accent-green);">$${p.take_profit ? p.take_profit.toFixed(2) : "N/A"}</td>
-      <td style="color: ${p.unrealised_pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)}; font-weight: bold;">
+      <td style="color: ${p.unrealised_pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)"}; font-weight: bold;">
         ${p.unrealised_pnl >= 0 ? "+" : ""}$${p.unrealised_pnl.toFixed(2)}
       </td>
       <td>${p.bars_held || 0}</td>
@@ -507,13 +513,13 @@ function loadOrders() {
           <td>${o.order_id}</td>
           <td>${o.client_order_id || "-"}</td>
           <td>${o.symbol}</td>
-          <td style="color: ${o.side.toUpperCase() === "BUY" ? "var(--accent-green)" : "var(--accent-red)}; font-weight: bold;">${o.side.toUpperCase()}</td>
+          <td style="color: ${o.side.toUpperCase() === "BUY" ? "var(--accent-green)" : "var(--accent-red)"}; font-weight: bold;">${o.side.toUpperCase()}</td>
           <td>${o.order_type}</td>
           <td>$${o.price ? o.price.toFixed(2) : "MKT"}</td>
           <td>${o.quantity.toFixed(4)}</td>
           <td>${o.filled_quantity ? o.filled_quantity.toFixed(4) : "0"}</td>
           <td>$${o.average_fill_price ? o.average_fill_price.toFixed(2) : "0.00"}</td>
-          <td><span style="font-weight: bold; color: ${o.status === "FILLED" ? "var(--accent-green)" : "var(--text-secondary)};">${o.status}</span></td>
+          <td><span style="font-weight: bold; color: ${o.status === "FILLED" ? "var(--accent-green)" : "var(--text-secondary)"};">${o.status}</span></td>
           <td>$${o.fees ? o.fees.toFixed(2) : "0.00"}</td>
           <td>${o.created_at}</td>
         </tr>
@@ -541,7 +547,7 @@ function loadTradeHistory() {
         <tr>
           <td>${t.trade_id}</td>
           <td>${t.symbol}</td>
-          <td style="color: ${t.side === "LONG" ? "var(--accent-green)" : "var(--accent-red)}; font-weight: bold;">${t.side}</td>
+          <td style="color: ${t.side === "LONG" ? "var(--accent-green)" : "var(--accent-red)"}; font-weight: bold;">${t.side}</td>
           <td>${t.entry_time.replace("T", " ").replace("Z", "")}</td>
           <td>${t.exit_time.replace("T", " ").replace("Z", "")}</td>
           <td>$${t.entry_price.toFixed(2)}</td>
@@ -550,10 +556,10 @@ function loadTradeHistory() {
           <td>$${t.target_price.toFixed(2)}</td>
           <td><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--bg-card);">${t.exit_reason}</span></td>
           <td>${t.bars_held}</td>
-          <td style="color: ${t.net_pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)}; font-weight: bold;">
+          <td style="color: ${t.net_pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)"}; font-weight: bold;">
             ${t.net_pnl >= 0 ? "+" : ""}$${t.net_pnl.toFixed(2)}
           </td>
-          <td style="color: ${t.realised_r >= 0 ? "var(--accent-green)" : "var(--accent-red)};">${t.realised_r.toFixed(2)}R</td>
+          <td style="color: ${t.realised_r >= 0 ? "var(--accent-green)" : "var(--accent-red)"};">${t.realised_r.toFixed(2)}R</td>
         </tr>
       `
         )
