@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+*.db
+*.db-journal
+logs/*.log
+data/BTCUSDT_5m_3y.csv

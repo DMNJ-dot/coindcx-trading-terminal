@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: coindcx-trading-terminal
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: TRADING_MODE
+        value: paper
+      - key: LIVE_TRADING_CONFIRMED
+        value: "false"
+      - key: DASHBOARD_USERNAME
+        value: admin
+      - key: DASHBOARD_PASSWORD
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.12.10

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoinDCX Institutional Trading Terminal | VWAP + EMA</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">⚡</div>
+      <div class="brand-text">
+        <h2>COINDCX PRO</h2>
+        <span>QUANT TERMINAL</span>
+      </div>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-item active" data-page="page-overview"><span class="nav-icon">📊</span> Overview</li>
+      <li class="nav-item" data-page="page-live"><span class="nav-icon">📈</span> Live Trading</li>
+      <li class="nav-item" data-page="page-strategies"><span class="nav-icon">⚙️</span> Strategies</li>
+      <li class="nav-item" data-page="page-positions"><span class="nav-icon">💼</span> Positions</li>
+      <li class="nav-item" data-page="page-orders"><span class="nav-icon">📝</span> Orders</li>
+      <li class="nav-item" data-page="page-history"><span class="nav-icon">📜</span> Trade History</li>
+      <li class="nav-item" data-page="page-backtest"><span class="nav-icon">🧪</span> Backtesting</li>
+      <li class="nav-item" data-page="page-analytics"><span class="nav-icon">📉</span> Analytics</li>
+      <li class="nav-item" data-page="page-risk"><span class="nav-icon">🛡️</span> Risk Management</li>
+      <li class="nav-item" data-page="page-logs"><span class="nav-icon">📑</span> Logs</li>
+      <li class="nav-item" data-page="page-settings"><span class="nav-icon">🔧</span> Settings</li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div id="badge-trading-mode" class="badge-mode badge-paper">PAPER TRADING</div>
+      <div style="font-size: 11px; color: var(--text-muted);">CoinDCX Perpetual Futures</div>
+      <div style="font-size: 11px; color: var(--accent-green); margin-top: 4px;" id="bot-heartbeat-text">● System Active</div>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="main-wrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="ticker-display">
+          <span class="ticker-symbol" id="top-symbol">B-BTC_USDT</span>
+          <span class="ticker-price" id="top-price">$0.00</span>
+          <span class="ticker-change pos" id="top-change">+0.00%</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary);">
+          Trend: <strong id="top-trend" style="color: var(--accent-green);">BULLISH</strong> | 
+          VWAP: <strong id="top-vwap">$0.00</strong> | 
+          EMA9: <strong id="top-ema9">$0.00</strong> | 
+          EMA21: <strong id="top-ema21">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="status-pill">
+          <span class="status-dot" id="dot-exchange"></span>
+          <span id="text-exchange">Exchange: Connected</span>
+        </div>
+        <div class="status-pill">
+          <span class="status-dot" id="dot-data"></span>
+          <span id="text-data">Stream: Live</span>
+        </div>
+        <button class="btn btn-danger" id="btn-top-emergency" style="padding: 6px 12px; font-size: 12px;">🚨 EMERGENCY STOP</button>
+      </div>
+    </header>
+
+    <!-- Main Views Area -->
+    <main class="content-area">
+
+      <!-- 1. OVERVIEW VIEW -->
+      <section id="page-overview" class="page-view active">
+        <div class="grid-4">
+          <div class="card">
+            <div class="card-title">Total Equity</div>
+            <div class="card-value" id="card-equity">$10,000.00</div>
+            <div class="card-subtext">Peak: <span id="card-peak">$10,000.00</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Today's P&L</div>
+            <div class="card-value" id="card-today-pnl">$0.00</div>
+            <div class="card-subtext">Realised: <span id="card-realised-pnl">$0.00</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Unrealised P&L</div>
+            <div class="card-value" id="card-unrealised-pnl">$0.00</div>
+            <div class="card-subtext">Used Margin: <span id="card-used-margin">$0.00</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Current Leverage / Exposure</div>
+            <div class="card-value" id="card-leverage">0.0x</div>
+            <div class="card-subtext">Notional: <span id="card-exposure">$0.00</span></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Trading Statistics -->
+          <div class="card">
+            <div class="card-title">Quantitative Trading Statistics</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+              <div>
+                <div class="card-subtext">Total Trades</div>
+                <div style="font-size: 18px; font-weight: bold;" id="stat-total-trades">0</div>
+              </div>
+              <div>
+                <div class="card-subtext">Win Rate</div>
+                <div style="font-size: 18px; font-weight: bold; color: var(--accent-green);" id="stat-win-rate">0.0%</div>
+              </div>
+              <div>
+                <div class="card-subtext">Profit Factor</div>
+                <div style="font-size: 18px; font-weight: bold;" id="stat-profit-factor">0.00</div>
+              </div>
+              <div>
+                <div class="card-subtext">Expectancy / Trade</div>
+                <div style="font-size: 18px; font-weight: bold;" id="stat-expectancy">$0.00</div>
+              </div>
+              <div>
+                <div class="card-subtext">Avg Win / Avg Loss</div>
+                <div style="font-size: 14px; font-weight: 600;" id="stat-avg-win-loss">$0.00 / $0.00</div>
+              </div>
+              <div>
+                <div class="card-subtext">Max Consecutive Losses</div>
+                <div style="font-size: 14px; font-weight: 600;" id="stat-max-streak">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bot Status -->
+          <div class="card">
+            <div class="card-title">Automated Bot Engine Status</div>
+            <div style="margin-top: 12px; font-size: 13px; line-height: 2;">
+              <div>Bot Status: <strong id="bot-state-text" style="color: var(--accent-green);">RUNNING</strong></div>
+              <div>Auto-Trading: <strong id="bot-autotrade-text" style="color: var(--accent-amber);">DISABLED</strong></div>
+              <div>Strategy: <strong style="color: var(--text-primary);">VWAP + EMA Trend Pullback (5m)</strong></div>
+              <div>Trading Session: <strong id="bot-session-status">13:00 - 22:00 IST (Mon-Fri)</strong></div>
+              <div>Last Evaluated Signal: <span id="bot-last-signal" style="color: var(--text-muted);">None</span></div>
+              <div>Last Executed Trade: <span id="bot-last-exec" style="color: var(--text-muted);">None</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. LIVE TRADING VIEW -->
+      <section id="page-live" class="page-view">
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title">Interactive Trading Control Panel</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-success" id="btn-start-bot">▶ Start Bot</button>
+            <button class="btn btn-secondary" id="btn-stop-bot">⏹ Stop Bot</button>
+            <button class="btn btn-warning" id="btn-enable-auto">⚡ Enable Auto Trading</button>
+            <button class="btn btn-secondary" id="btn-disable-auto">⏸ Pause Entries</button>
+            <button class="btn btn-primary" id="btn-switch-mode">🔄 Switch Trading Mode</button>
+            <button class="btn btn-danger" id="btn-close-pos">❌ Close Active Position</button>
+            <button class="btn btn-danger" id="btn-emergency">🚨 Emergency Stop</button>
+          </div>
+        </div>
+
+        <!-- Interactive Candlestick Chart -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title">
+            <span>5-Minute Interactive Chart with EMA 9, EMA 21, and Session VWAP</span>
+            <span style="font-size: 11px; color: var(--text-muted);">Real-time CoinDCX Market Feed</span>
+          </div>
+          <div id="chart-container"></div>
+        </div>
+
+        <!-- Live Open Positions -->
+        <div class="card">
+          <div class="card-title">Active Open Positions</div>
+          <div class="table-responsive">
+            <table class="table" id="table-live-positions">
+              <thead>
+                <tr>
+                  <th>Position ID</th>
+                  <th>Symbol</th>
+                  <th>Side</th>
+                  <th>Contracts</th>
+                  <th>Entry Price</th>
+                  <th>Current Price</th>
+                  <th>Stop Loss</th>
+                  <th>Take Profit</th>
+                  <th>Unrealised P&L</th>
+                  <th>Bars Held</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="11" style="text-align: center; color: var(--text-muted);">No open positions.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. STRATEGY CONFIGURATION VIEW -->
+      <section id="page-strategies" class="page-view">
+        <div class="card">
+          <div class="card-title">VWAP + EMA Trend Pullback Strategy Configuration</div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+            Adjust quantitative rules, moving average windows, stop-loss ATR multipliers, and session filters. Default values adhere strictly to original specification.
+          </p>
+
+          <form id="form-strategy-config">
+            <div class="grid-3">
+              <div class="form-group">
+                <label>Trading Symbol</label>
+                <input type="text" class="form-control" id="cfg-symbol" value="B-BTC_USDT">
+              </div>
+              <div class="form-group">
+                <label>Timeframe</label>
+                <input type="text" class="form-control" id="cfg-timeframe" value="5m" disabled>
+              </div>
+              <div class="form-group">
+                <label>EMA Fast Period</label>
+                <input type="number" class="form-control" id="cfg-ema-fast" value="9">
+              </div>
+              <div class="form-group">
+                <label>EMA Slow Period</label>
+                <input type="number" class="form-control" id="cfg-ema-slow" value="21">
+              </div>
+              <div class="form-group">
+                <label>ATR Period</label>
+                <input type="number" class="form-control" id="cfg-atr-period" value="14">
+              </div>
+              <div class="form-group">
+                <label>Volume MA Period</label>
+                <input type="number" class="form-control" id="cfg-vol-ma-period" value="20">
+              </div>
+              <div class="form-group">
+                <label>Volume Trigger Multiplier</label>
+                <input type="number" step="0.1" class="form-control" id="cfg-vol-mult" value="0.8">
+              </div>
+              <div class="form-group">
+                <label>Stop Loss ATR Multiplier</label>
+                <input type="number" step="0.05" class="form-control" id="cfg-stop-atr" value="0.25">
+              </div>
+              <div class="form-group">
+                <label>Take Profit RR Multiplier</label>
+                <input type="number" step="0.5" class="form-control" id="cfg-tp-rr" value="3.0">
+              </div>
+              <div class="form-group">
+                <label>Risk % Per Trade</label>
+                <input type="number" step="0.1" class="form-control" id="cfg-risk-pct" value="0.5">
+              </div>
+              <div class="form-group">
+                <label>Max Leverage</label>
+                <input type="number" class="form-control" id="cfg-leverage" value="10">
+              </div>
+              <div class="form-group">
+                <label>Daily Loss Limit (%)</label>
+                <input type="number" step="0.5" class="form-control" id="cfg-daily-loss" value="2.0">
+              </div>
+              <div class="form-group">
+                <label>Cooldown Bars (15m = 3 bars)</label>
+                <input type="number" class="form-control" id="cfg-cooldown" value="3">
+              </div>
+              <div class="form-group">
+                <label>Max Holding Duration (Bars)</label>
+                <input type="number" class="form-control" id="cfg-max-hold" value="6">
+              </div>
+              <div class="form-group">
+                <label>Slippage Assumption (%)</label>
+                <input type="number" step="0.01" class="form-control" id="cfg-slippage" value="0.03">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">💾 Save Configuration</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- 4. POSITIONS VIEW -->
+      <section id="page-positions" class="page-view">
+        <div class="card">
+          <div class="card-title">Open Positions Management</div>
+          <div class="table-responsive">
+            <table class="table" id="table-positions-full">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Symbol</th>
+                  <th>Side</th>
+                  <th>Contracts</th>
+                  <th>Entry Price</th>
+                  <th>Current Price</th>
+                  <th>Stop Loss</th>
+                  <th>Take Profit</th>
+                  <th>Unrealised P&L</th>
+                  <th>Margin</th>
+                  <th>Leverage</th>
+                  <th>Opened At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="13" style="text-align: center; color: var(--text-muted);">No open positions.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. ORDERS VIEW -->
+      <section id="page-orders" class="page-view">
+        <div class="card">
+          <div class="card-title">Order Management & Execution Log</div>
+          <div class="table-responsive">
+            <table class="table" id="table-orders">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Client Order ID</th>
+                  <th>Symbol</th>
+                  <th>Side</th>
+                  <th>Type</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Filled Qty</th>
+                  <th>Avg Fill</th>
+                  <th>Status</th>
+                  <th>Fees</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="12" style="text-align: center; color: var(--text-muted);">No orders recorded.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. TRADE HISTORY VIEW -->
+      <section id="page-history" class="page-view">
+        <div class="card">
+          <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Completed Trades History</span>
+            <button class="btn btn-secondary" id="btn-export-csv" style="font-size: 12px;">📥 Export CSV</button>
+          </div>
+          <div class="table-responsive" style="margin-top: 16px;">
+            <table class="table" id="table-history">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Symbol</th>
+                  <th>Side</th>
+                  <th>Entry Time</th>
+                  <th>Exit Time</th>
+                  <th>Entry</th>
+                  <th>Exit</th>
+                  <th>Stop</th>
+                  <th>Target</th>
+                  <th>Reason</th>
+                  <th>Bars</th>
+                  <th>Net P&L</th>
+                  <th>Realised R</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="13" style="text-align: center; color: var(--text-muted);">No completed trades.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. BACKTESTING VIEW -->
+      <section id="page-backtest" class="page-view">
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Quantitative Historical Backtest (3-Year 5m Dataset)</span>
+            <button class="btn btn-primary" id="btn-run-backtest">▶ Run Backtest Simulation</button>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">
+            Executes clean simulation with pessimistic & optimistic same-bar ambiguity resolution, walk-forward windows, baselines, and 6 pre-registered PASS/FAIL criteria.
+          </p>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 20px;">
+          <div class="card">
+            <div class="card-title">Equity Curve Chart</div>
+            <img id="img-equity-curve" src="/results/equity_curve.png" alt="Equity Curve" style="width: 100%; border-radius: 6px; border: 1px solid var(--border-color);">
+          </div>
+          <div class="card">
+            <div class="card-title">Out-of-Sample Monthly P&L</div>
+            <img id="img-monthly-pnl" src="/results/monthly_pnl.png" alt="Monthly P&L" style="width: 100%; border-radius: 6px; border: 1px solid var(--border-color);">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Backtest Report (REPORT.md)</div>
+          <div id="report-content" style="background-color: var(--bg-primary); padding: 20px; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; font-family: var(--font-mono); max-height: 500px; overflow-y: auto;">
+            Loading backtest report...
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. ANALYTICS VIEW -->
+      <section id="page-analytics" class="page-view">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Drawdown & Recovery Profile</div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 10px;">
+              <div>Max Drawdown ($): <strong id="an-dd-usd">$0.00</strong></div>
+              <div>Max Drawdown (%): <strong id="an-dd-pct">0.00%</strong></div>
+              <div>Profit Factor: <strong id="an-pf">0.00</strong></div>
+              <div>Average R: <strong id="an-r">0.00R</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Exit Reason Distribution</div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 10px; line-height: 2;">
+              <div>Take Profit Hit: <strong style="color: var(--accent-green);">~3.3%</strong></div>
+              <div>Stop Loss Hit: <strong style="color: var(--accent-red);">~30.8%</strong></div>
+              <div>30m Time Stop Exit: <strong style="color: var(--accent-blue);">~65.9%</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. RISK MANAGEMENT VIEW -->
+      <section id="page-risk" class="page-view">
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title">Autonomous Risk Engine Controls</div>
+          <div style="margin-top: 12px; font-size: 13px; line-height: 2;">
+            <div>Circuit Breaker Status: <strong id="risk-halt-status" style="color: var(--accent-green);">NORMAL / ACTIVE</strong></div>
+            <div>Risk Per Trade: <strong>0.5% of Account Equity</strong></div>
+            <div>Max Position Leverage: <strong>10.0x</strong></div>
+            <div>Daily Loss Halt: <strong>-2.0% of Start-of-Day Equity</strong></div>
+            <div>Max Open Positions: <strong>1 Position</strong></div>
+            <div>Post-Trade Cooldown: <strong>15 Minutes (3 Closed Bars)</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. LOGS VIEW -->
+      <section id="page-logs" class="page-view">
+        <div class="card">
+          <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Real-time Institutional System Logs</span>
+            <div>
+              <button class="btn btn-secondary" id="btn-refresh-logs" style="font-size: 12px;">🔄 Refresh</button>
+            </div>
+          </div>
+          <div class="log-container" id="log-feed" style="margin-top: 14px;"></div>
+        </div>
+      </section>
+
+      <!-- 11. SETTINGS VIEW -->
+      <section id="page-settings" class="page-view">
+        <div class="card">
+          <div class="card-title">API Authentication & Secure Credentials</div>
+          <form id="form-credentials" style="margin-top: 16px;">
+            <div class="form-group">
+              <label>CoinDCX API Key</label>
+              <input type="password" class="form-control" id="set-api-key" placeholder="Enter CoinDCX API Key">
+            </div>
+            <div class="form-group">
+              <label>CoinDCX API Secret</label>
+              <input type="password" class="form-control" id="set-api-secret" placeholder="Enter CoinDCX API Secret">
+            </div>
+            <div class="form-group">
+              <label>Telegram Bot Token (Optional)</label>
+              <input type="text" class="form-control" id="set-telegram-token" placeholder="Optional bot token">
+            </div>
+            <div class="form-group">
+              <label>Telegram Chat ID (Optional)</label>
+              <input type="text" class="form-control" id="set-telegram-chat" placeholder="Optional chat ID">
+            </div>
+            <button type="submit" class="btn btn-primary">🔒 Save Credentials</button>
+          </form>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal: Switch Mode Confirmation -->
+  <div class="modal-overlay" id="modal-mode">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-mode-title">Switch Trading Mode</h3>
+      </div>
+      <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;" id="modal-mode-desc">
+        Select target operating mode.
+      </p>
+      <div style="margin-top: 16px;">
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer;">
+          <input type="radio" name="opt-mode" value="paper" checked> Paper Trading (Real Market Prices, Simulated Execution)
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer;">
+          <input type="radio" name="opt-mode" value="testnet"> Testnet / Sandbox Mode
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; color: var(--accent-red); font-weight: bold;">
+          <input type="radio" name="opt-mode" value="live"> LIVE TRADING (Real Orders with Real Money)
+        </label>
+        <div id="live-confirm-box" style="display: none; padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-red); border-radius: 6px; margin-top: 10px;">
+          <label style="font-size: 12px; color: var(--accent-red); display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="chk-live-confirm"> I understand live execution will submit real orders to CoinDCX.
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-modal-confirm">Confirm Mode</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
